@@ -134,6 +134,24 @@ app.post("/shopProduct",async(req,res)=>{
         console.log("user post erro",error.message);
     }
 })
+// -------------------------
+app.post("/getPaidUpdateData",async(req,res)=>{
+    try {
+        const bodyInfo = req.body
+   
+        const query = {_id:new ObjectId(bodyInfo?.id)}
+        let update = await shopProductCollection.findOne(query)
+     
+       if (update) {
+         update.quantity -=1
+         update.SaleCount +=1
+         await shopProductCollection.updateOne(query, { $set: { quantity: update.quantity , SaleCount:update.SaleCount}})
+       }
+        res.send(update)
+    } catch (error) {
+        console.log("user post erro",error.message);
+    }
+})
 
 app.post("/shop",async(req,res)=>{
     try {
