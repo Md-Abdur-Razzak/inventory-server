@@ -30,11 +30,15 @@ async function run() {
 
 
 //--------------------------get method --------------------------------
-app.get("/shop",async(req,res)=>{
-    const qury = {manager :'manager'}
-    const users = await shopCollection.findOne(qury)
-    console.log(users);
-    res.send(users)
+app.get("/users",async(req,res)=>{
+    const email = req.query.email
+    const query = {email:email}
+    const find = await usersCollection.findOne(query)
+    if (find?.roll=="manager") {
+        return res.send({manager:true})
+    }
+    
+    res.send(find)
 })
 app.get("/user",async(req,res)=>{
    const email = req.query.email
@@ -53,6 +57,19 @@ app.get("/shopProduct",async(req,res)=>{
     const email = req.query.email
     const query = {email:email}
      const users = await shopProductCollection.find(query).toArray()
+     res.send(users)
+  } catch (error) {
+    console.log(error);
+  }
+   
+     
+   
+})
+app.get("/salesProduct",async(req,res)=>{
+  try {
+    const email = req.query.email
+    const query = {email:email}
+     const users = await salesProductCollection.find(query).toArray()
      res.send(users)
   } catch (error) {
     console.log(error);
@@ -97,7 +114,7 @@ app.post("/salesProduct",async(req,res)=>{
 app.post("/shopProduct",async(req,res)=>{
     try {
         const bodyInfo = req.body
-        console.log(bodyInfo.email);
+     
         const query = {email:bodyInfo?.email}
         let update = await usersCollection.findOne(query)
       
@@ -123,7 +140,7 @@ app.post("/shop",async(req,res)=>{
         const bodyInfo = req.body
         const qury = {email:bodyInfo.shopEmail}
         const filter = await usersCollection.findOne(qury)
-        console.log(filter._id);
+       
         if (filter.roll == "manager") {
             return res.send({message:true})
         }
@@ -135,7 +152,7 @@ app.post("/shop",async(req,res)=>{
             }
         }
         const update = await usersCollection.updateOne(qury,dataqury)
-        console.log(update);
+   
         const result = await shopCollection.insertOne(bodyInfo)
         res.send(result)
     } catch (error) {
