@@ -25,6 +25,7 @@ async function run() {
     const usersCollection = client.db("CarDealer").collection("users")
     const shopCollection = client.db("CarDealer").collection("shops")
     const shopProductCollection = client.db("CarDealer").collection("shopProduct")
+    const salesProductCollection = client.db("CarDealer").collection("salesProduct")
 
 
 
@@ -60,12 +61,34 @@ app.get("/shopProduct",async(req,res)=>{
      
    
 })
+app.get("/singleShopProduct/:id",async(req,res)=>{
+  try {
+    const id = req.params.id
+    const query = {_id:new ObjectId(id)}
+     const users = await shopProductCollection.findOne(query)
+     res.send(users)
+  } catch (error) {
+    console.log(error);
+  }
+   
+     
+   
+})
 
 // -------------------------post Method -------------------------------
 app.post("/user",async(req,res)=>{
     try {
         const bodyInfo = req.body
         const result = await usersCollection.insertOne(bodyInfo)
+        res.send(result)
+    } catch (error) {
+        console.log("user post erro",error.message);
+    }
+})
+app.post("/salesProduct",async(req,res)=>{
+    try {
+        const bodyInfo = req.body
+        const result = await salesProductCollection.insertOne(bodyInfo)
         res.send(result)
     } catch (error) {
         console.log("user post erro",error.message);
@@ -131,6 +154,25 @@ app.delete('/shopProduct/:id',async(req,res)=>{
     } catch (error) {
         console.log(error);
     }
+})
+app.patch("/shopProductUpdate/:id",async(req,res)=>{
+   try {
+    const id = req.params.id
+    const body = req.body
+    const query = {_id:new ObjectId(id)}
+    const option = {upsert:true}
+    const setUpdate ={
+        $set:{
+            ...body
+        }
+    }
+    const updating = await shopProductCollection.updateOne(query,setUpdate,option)
+    res.send(updating)
+    
+   } catch (error) {
+    console.log('update',error);
+   }
+
 })
 
 
