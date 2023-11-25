@@ -193,13 +193,38 @@ async function run() {
         console.log("shop post erro", error.message);
       }
     });
+    app.post("/limitUpdate", async (req, res) => {
+      try {
+        const email = req.query.email;
+        const {limit} = req.body;
+      
+        const qury = {email:email};
+        const filter = await usersCollection.findOne(qury);
+        console.log(filter);
+        if (filter) {
+          filter.limit =limit
+        }
+        const dataqury = {
+          $set: {
+            limit:limit,
+          },
+        };
+      
+        const update = await usersCollection.updateOne(qury, dataqury);
+
+      
+        res.send(update);
+      } catch (error) {
+        console.log("shop post erro", error.message);
+      }
+    });
     // ------------------Paymet integration-------------------------------
     app.post("/payment", async (req, res) => {
-      const { price } = req.body;
-      const taka = parseInt(price * 100);
+      const { taka } = req.body;
+      const price = parseInt(taka * 100);
 
       const payment = await stripe.paymentIntents.create({
-        amount: taka,
+        amount: price,
         currency: "usd",
         payment_method_types: ["card"],
       });
