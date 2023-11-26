@@ -25,21 +25,29 @@ async function run() {
     // -----------------------collection------------------------
     const usersCollection = client.db("CarDealer").collection("users");
     const shopCollection = client.db("CarDealer").collection("shops");
-    const shopProductCollection = client
-      .db("CarDealer")
-      .collection("shopProduct");
-    const salesProductCollection = client
-      .db("CarDealer")
-      .collection("salesProduct");
+    const paindInfoCollection = client.db("CarDealer").collection("paindInfo");
+    const shopProductCollection = client.db("CarDealer").collection("shopProduct");
+    const salesProductCollection = client.db("CarDealer").collection("salesProduct");
       const limitCollection = client.db("CarDealer").collection("limit");
 
     //--------------------------get method --------------------------------
+    // -----------admin work ----------------------
+    app.get("/alluser", async (req, res) => {
+      
+      const find = await usersCollection.find().toArray();
+     
+      res.send(find);
+    });
+    // ---------------shop manager work--------------
     app.get("/users", async (req, res) => {
       const email = req.query.email;
       const query = { email: email };
       const find = await usersCollection.findOne(query);
       if (find?.roll == "manager") {
-        return res.send({ manager: true });
+         return res.send({ manager: true });
+      }
+      else if( find?.roll == "admin"){
+        return res.send({ admin: true });
       }
 
       res.send(find);
@@ -48,8 +56,8 @@ async function run() {
       const email = req.query.email;
       const query = { email: email };
       const users = await usersCollection.findOne(query);
-      if (users?.roll == "manager") {
-        return res.send({ dasbord: true, users });
+      if (users?.roll == "manager" || users?.roll == "admin") {
+        return res.send( users );
       } else {
         return res.send({ creatshop: true });
       }
@@ -69,6 +77,16 @@ async function run() {
         const email = req.query.email;
         const query = { email: email };
         const users = await salesProductCollection.find(query).toArray();
+        res.send(users);
+      } catch (error) {
+        console.log(error);
+      }
+    });
+    app.get("/paindInfo", async (req, res) => {
+      try {
+        const email = req.query.email;
+        const query = { email: email };
+        const users = await paindInfoCollection.find(query).sort({'date':-1}).toArray();
         res.send(users);
       } catch (error) {
         console.log(error);
@@ -104,6 +122,15 @@ async function run() {
       try {
         const bodyInfo = req.body;
         const result = await usersCollection.insertOne(bodyInfo);
+        res.send(result);
+      } catch (error) {
+        console.log("user post erro", error.message);
+      }
+    });
+    app.post("/paindInfo", async (req, res) => {
+      try {
+        const bodyInfo = req.body;
+        const result = await paindInfoCollection.insertOne(bodyInfo);
         res.send(result);
       } catch (error) {
         console.log("user post erro", error.message);
@@ -183,6 +210,8 @@ async function run() {
           $set: {
             roll: "manager",
             limit: bodyInfo.limit,
+            shopInfo:bodyInfo.shopInfo,
+            logo : bodyInfo.display_url
           },
         };
         const update = await usersCollection.updateOne(qury, dataqury);
@@ -200,7 +229,7 @@ async function run() {
       
         const qury = {email:email};
         const filter = await usersCollection.findOne(qury);
-        console.log(filter);
+    
         if (filter) {
           filter.limit =limit
         }
